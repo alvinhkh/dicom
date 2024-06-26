@@ -250,14 +250,17 @@ func (p *Parser) Next() (*Element, error) {
 	// TODO: add dicom options to only keep track of certain tags
 
 	if elem.Tag == tag.SpecificCharacterSet {
-		encodingNames := MustGetStrings(elem.Value)
-		cs, err := charset.ParseSpecificCharacterSet(encodingNames)
-		if err != nil {
-			// unable to parse character set, hard error
-			// TODO: add option continue, even if unable to parse
-			return nil, err
+		switch elem.Value.ValueType() {
+		case Strings:
+			encodingNames := MustGetStrings(elem.Value)
+			cs, err := charset.ParseSpecificCharacterSet(encodingNames)
+			if err != nil {
+				// unable to parse character set, hard error
+				// TODO: add option continue, even if unable to parse
+				return nil, err
+			}
+			p.reader.rawReader.SetCodingSystem(cs)
 		}
-		p.reader.rawReader.SetCodingSystem(cs)
 	}
 
 	p.dataset.Elements = append(p.dataset.Elements, elem)
